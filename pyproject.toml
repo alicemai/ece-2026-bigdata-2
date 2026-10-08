@@ -1,0 +1,20 @@
+[project]
+name = "ece-2026-bigdata-2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "alicemai", email = "alice.coste@edu.ece.fr" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "faker>=40.41.0",
+]
+
+[project.scripts]
+dataset-users = "ece_2026_bigdata_2.dataset_users:main"
+dataset-orders = "ece_2026_bigdata_2.dataset_orders:main"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
