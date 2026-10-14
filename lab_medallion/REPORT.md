@@ -60,7 +60,7 @@ Possible strategies are to reject the invalid records, replace the invalid birth
 
 ### 5.2 ZIP codes
 
-The generated addresses combine a state with a random ZIP code (for example `KY 01352`). To detect this, a test must check that each ZIP code falls within the valid range for its state. This requires reference data linking states to ZIP ranges, which should come from an official source like USPS. My test `assert_zip_matches_state` flagged **@ZIP@ users** as warnings.
+The generated addresses combine a state with a random ZIP code (for example `KY 01352`). To detect this, a test must check that each ZIP code falls within the valid range for its state. This requires reference data linking states to ZIP ranges, which should come from an official source like USPS. My test `assert_zip_matches_state` flagged **49 users** as warnings.
 
 ## 6. Full pipeline and lineage
 
@@ -75,7 +75,7 @@ The lineage is `bronze.users -> stg_users` and `bronze.orders -> stg_orders`. I 
 
 ## 7. Parquet export
 
-I exported `stg_users` and `stg_orders` to `s3://user-a-coste-ece/silver/dbt/users.parquet` and `orders.parquet` with `COPY ... TO ... (FORMAT parquet)`. I queried the files directly with `read_parquet`, and the orders file returned **@ORDERS@ rows**, the same as the view.
+I exported `stg_users` and `stg_orders` to `s3://user-a-coste-ece/silver/dbt/users.parquet` and `orders.parquet` with `COPY ... TO ... (FORMAT parquet)`. I queried the files directly with `read_parquet`, and the orders file returned **2829 rows**, the same as the view.
 
 A view is a logical materialization: only the query is stored, and the transformation runs at every read. A Parquet file is a physical materialization: the transformation runs once during the export, and later queries read the stored result.
 
@@ -83,7 +83,7 @@ A view is a logical materialization: only the query is stored, and the transform
 
 1. **`username_normalized`:** I added `lower(trim(username))` to `stg_users`, documented the column in `silver.yml` and added a `not_null` test.
 2. **Order validation:** the positive quantity is checked by the singular test `assert_quantity_positive`. The expected products and the existence of each `user_id` are checked by generic tests (`accepted_values` and `relationships`).
-3. **Invalid birthdates:** in `stg_users`, I compute the date of each user's first order. If the birthdate is later than that date, it is replaced by `NULL`, and a boolean column `birthdate_is_valid` keeps track of it. **@INVALID@ users** had an invalid birthdate. After this change, `assert_orders_after_user_birth` passes.
+3. **Invalid birthdates:** in `stg_users`, I compute the date of each user's first order. If the birthdate is later than that date, it is replaced by `NULL`, and a boolean column `birthdate_is_valid` keeps track of it. **5 users** had an invalid birthdate. After this change, `assert_orders_after_user_birth` passes.
 4. **ZIP codes:** I created the seed `seeds/states.csv` with a ZIP range per state. It is used by a `relationships` test on `state` and by `assert_zip_matches_state`.
    - *Where should the reference data come from?* From an official source like USPS.
    - *Should it be a seed?* Yes if it is small and stable, because it is versioned in git. A large or frequently updated list would be better loaded as a table by the ingestion process.
